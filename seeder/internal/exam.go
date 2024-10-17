@@ -1,7 +1,6 @@
 package seeder
 
 import (
-	"database/sql"
 	"fmt"
 	"math/rand"
 	"time"
@@ -10,10 +9,20 @@ import (
 	"be-exerise-go-mod/repository"
 )
 
-func ExamSeeder(db *sql.DB) {
-	courseRepository := repository.NewCourseRepository(db)
-	examRepository := repository.NewExamRepository(db)
-	courseIDs := courseRepository.GetCourseIDs()
+type Exam struct {
+	courseRepo *repository.CourseRepository
+	examRepo   *repository.ExamRepository
+}
+
+func NewExam(courseRepo *repository.CourseRepository, examRepo *repository.ExamRepository) *Exam {
+	return &Exam{
+		courseRepo: courseRepo,
+		examRepo:   examRepo,
+	}
+}
+
+func (s *Exam) Seed() {
+	courseIDs := s.courseRepo.GetCourseIDs()
 	examNames := []string{
 		"Midterm Exam 1",
 		"Midterm Exam 2",
@@ -44,6 +53,6 @@ func ExamSeeder(db *sql.DB) {
 			nextTestDate = nextTestDate.AddDate(0, 0, rand.Intn(50)+30)
 		}
 	}
-	examRepository.InsertMultipleExams(examModelLinks)
+	s.examRepo.InsertMultipleExams(examModelLinks)
 	fmt.Println("Finish seeding Exam")
 }

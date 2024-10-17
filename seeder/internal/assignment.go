@@ -1,7 +1,6 @@
 package seeder
 
 import (
-	"database/sql"
 	"fmt"
 	"math/rand"
 	"time"
@@ -12,10 +11,21 @@ import (
 	"github.com/brianvoe/gofakeit/v7"
 )
 
-func AssignmentSeeder(db *sql.DB) {
+type Assignment struct {
+	assignmentRepo *repository.AssignmentRepository
+	courseRepo     *repository.CourseRepository
+}
+
+func NewAssignment(assignmentRepo *repository.AssignmentRepository, courseRepo *repository.CourseRepository) *Assignment {
+	return &Assignment{
+		assignmentRepo: assignmentRepo,
+		courseRepo:     courseRepo,
+	}
+}
+
+func (s *Assignment) Seed() {
 	minAssignmentCount := 3
-	courseRepository := repository.NewCourseRepository(db)
-	courseIDs := courseRepository.GetCourseIDs()
+	courseIDs := s.courseRepo.GetCourseIDs()
 	// increasing the ratio to approved vs false to 6:1
 	gradedOption := []bool{true, true, true, true, true, false}
 	randomTitles := []string{
@@ -49,8 +59,10 @@ func AssignmentSeeder(db *sql.DB) {
 			assignmentModelLinks = append(assignmentModelLinks, modelLink)
 		}
 	}
-	// TODO clean up repository struct creation (perhaps from main then pass along the seeding flow?)
-	assignmentRepo := repository.NewAssignmentRepository(db)
-	assignmentRepo.InsertMultipleAssignments(assignmentModelLinks)
+	s.assignmentRepo.InsertMultipleAssignments(assignmentModelLinks)
 	fmt.Println("Finish seeding Assignment")
+}
+
+func (s *Assignment) ClearAll() {
+	s.assignmentRepo.ClearAllAssignments()
 }

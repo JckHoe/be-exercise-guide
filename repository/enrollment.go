@@ -13,25 +13,18 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type EnrollmentRepository interface {
-	IsStudentEnrolledInCourse(studentID int32, courseID int32) bool
-	GetStudentIDsEnrolledInCourse(courseID int32) []int32
-	InsertMultipleEnrollments(enrollments []model.Enrollment)
-	ClearAllEnrollments()
-}
-
-type enrollmentRepository struct {
+type EnrollmentRepository struct {
 	db *sql.DB
 }
 
-func NewEnrollmentRepository(db *sql.DB) *enrollmentRepository {
-	return &enrollmentRepository{
+func NewEnrollmentRepository(db *sql.DB) *EnrollmentRepository {
+	return &EnrollmentRepository{
 		db: db,
 	}
 }
 
 // TODO: anyway to extract model.Student.ID type?
-func (r *enrollmentRepository) IsStudentEnrolledInCourse(studentID int32, courseID int32) bool {
+func (r *EnrollmentRepository) IsStudentEnrolledInCourse(studentID int32, courseID int32) bool {
 	stmt := SELECT(
 		Enrollment.ID,
 	).FROM(
@@ -46,7 +39,7 @@ func (r *enrollmentRepository) IsStudentEnrolledInCourse(studentID int32, course
 	return len(dest) > 0
 }
 
-func (r *enrollmentRepository) GetStudentIDsEnrolledInCourse(courseID int32) []int32 {
+func (r *EnrollmentRepository) GetStudentIDsEnrolledInCourse(courseID int32) []int32 {
 	stmt := SELECT(
 		Enrollment.StudentID,
 	).FROM(
@@ -66,7 +59,7 @@ func (r *enrollmentRepository) GetStudentIDsEnrolledInCourse(courseID int32) []i
 	return studentIds
 }
 
-func (r *enrollmentRepository) InsertMultipleEnrollments(enrollments []model.Enrollment) {
+func (r *EnrollmentRepository) InsertMultipleEnrollments(enrollments []model.Enrollment) {
 	insertStmt := Enrollment.INSERT(
 		Enrollment.StudentID,
 		Enrollment.CourseID,
@@ -76,7 +69,7 @@ func (r *enrollmentRepository) InsertMultipleEnrollments(enrollments []model.Enr
 	util.PanicOnError(err)
 }
 
-func (r *enrollmentRepository) ClearAllEnrollments() {
+func (r *EnrollmentRepository) ClearAllEnrollments() {
 	_, err := r.db.Exec("TRUNCATE TABLE enrollment RESTART IDENTITY CASCADE")
 	util.PanicOnError(err)
 	fmt.Println("Complete truncating enrollment table and reset auto increment")

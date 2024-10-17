@@ -13,24 +13,17 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type CourseRepository interface {
-	GetCourseIDs() []int32
-	CourseExists() bool
-	InsertMultipleCourses(departments []model.Course)
-	ClearAllCourses()
-}
-
-type courseRepository struct {
+type CourseRepository struct {
 	db *sql.DB
 }
 
-func NewCourseRepository(db *sql.DB) *courseRepository {
-	return &courseRepository{
+func NewCourseRepository(db *sql.DB) *CourseRepository {
+	return &CourseRepository{
 		db: db,
 	}
 }
 
-func (r *courseRepository) GetCourseIDs() []int32 {
+func (r *CourseRepository) GetCourseIDs() []int32 {
 	stmt := SELECT(
 		Course.ID,
 	).FROM(
@@ -50,7 +43,7 @@ func (r *courseRepository) GetCourseIDs() []int32 {
 	return ids
 }
 
-func (r *courseRepository) CourseExists() bool {
+func (r *CourseRepository) CourseExists() bool {
 	stmt := SELECT(
 		Course.ID,
 	).FROM(
@@ -65,7 +58,7 @@ func (r *courseRepository) CourseExists() bool {
 	return len(dest) > 0
 }
 
-func (r *courseRepository) InsertMultipleCourses(departments []model.Course) {
+func (r *CourseRepository) InsertMultipleCourses(departments []model.Course) {
 	insertStmt := Course.INSERT(
 		Course.Name,
 		Course.Description,
@@ -76,7 +69,7 @@ func (r *courseRepository) InsertMultipleCourses(departments []model.Course) {
 	util.PanicOnError(err)
 }
 
-func (r *courseRepository) ClearAllCourses() {
+func (r *CourseRepository) ClearAllCourses() {
 	_, err := r.db.Exec("TRUNCATE TABLE course RESTART IDENTITY CASCADE")
 	util.PanicOnError(err)
 	fmt.Println("Complete truncating course table and reset auto increment")

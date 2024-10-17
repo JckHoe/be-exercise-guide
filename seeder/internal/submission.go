@@ -1,7 +1,6 @@
 package seeder
 
 import (
-	"database/sql"
 	"fmt"
 	"math/rand"
 	"time"
@@ -10,22 +9,39 @@ import (
 	"be-exerise-go-mod/repository"
 )
 
-func SubmissionSeeder(db *sql.DB) {
-	chanceOfSubmission := []bool{true, true, true, true, true, true, true, true, true, false}
-	courseRepository := repository.NewCourseRepository(db)
-	examRepository := repository.NewExamRepository(db)
-	submissionRepository := repository.NewSubmissionRepository(db)
+type Submission struct {
+	assignmentRepo *repository.AssignmentRepository
+	courseRepo     *repository.CourseRepository
+	examRepo       *repository.ExamRepository
+	submissionRepo *repository.SubmissionRepository
+	enrollmentRepo *repository.EnrollmentRepository
+}
 
-	courseIDs := courseRepository.GetCourseIDs()
-	// Create repo struct here, u may refactor it later
-	assignmentRepo := repository.NewAssignmentRepository(db)
-	enrollmentRepository := repository.NewEnrollmentRepository(db)
+func NewSubmission(
+	assignmentRepo *repository.AssignmentRepository,
+	courseRepo *repository.CourseRepository,
+	examRepo *repository.ExamRepository,
+	submissionRepo *repository.SubmissionRepository,
+	enrollmentRepo *repository.EnrollmentRepository,
+) *Submission {
+	return &Submission{
+		courseRepo:     courseRepo,
+		examRepo:       examRepo,
+		submissionRepo: submissionRepo,
+		enrollmentRepo: enrollmentRepo,
+	}
+}
+
+func (s *Submission) Seed() {
+	chanceOfSubmission := []bool{true, true, true, true, true, true, true, true, true, false}
+
+	courseIDs := s.courseRepo.GetCourseIDs()
 	var submissionModelLinks []model.Submission
 
 	for _, courseId := range courseIDs {
-		studentIDs := enrollmentRepository.GetStudentIDsEnrolledInCourse(courseId)
-		assignments := assignmentRepo.GetAssignmentsByCourseID(courseId)
-		exams := examRepository.GetExamsByCourseID(courseId)
+		studentIDs := s.enrollmentRepo.GetStudentIDsEnrolledInCourse(courseId)
+		assignments := s.assignmentRepo.GetAssignmentsByCourseID(courseId)
+		exams := s.examRepo.GetExamsByCourseID(courseId)
 		for _, assignment := range assignments {
 			for _, studentId := range studentIDs {
 				willSubmitAssignment := chanceOfSubmission[rand.Intn(len(chanceOfSubmission))]
@@ -65,7 +81,7 @@ func SubmissionSeeder(db *sql.DB) {
 			end = len(submissionModelLinks)
 		}
 		batch := submissionModelLinks[i:end]
-		submissionRepository.InsertMultipleSubmissions(batch)
+		s.submissionRepo.InsertMultipleSubmissions(batch)
 	}
 
 	fmt.Println("Finish seeding Submission")

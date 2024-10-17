@@ -1,7 +1,6 @@
 package seeder
 
 import (
-	"database/sql"
 	"fmt"
 	"math/rand"
 
@@ -9,22 +8,33 @@ import (
 	"be-exerise-go-mod/repository"
 )
 
-func EnrollmentSeeder(db *sql.DB) {
+type Enrollment struct {
+	studentRepo    *repository.StudentRepository
+	courseRepo     *repository.CourseRepository
+	enrollmentRepo *repository.EnrollmentRepository
+}
+
+func NewEnrollment(studentRepo *repository.StudentRepository, courseRepo *repository.CourseRepository, enrollmentRepo *repository.EnrollmentRepository) *Enrollment {
+	return &Enrollment{
+		studentRepo:    studentRepo,
+		courseRepo:     courseRepo,
+		enrollmentRepo: enrollmentRepo,
+	}
+}
+
+func (s *Enrollment) Seed() {
 	minCourseEnroll := 3
-	studentRepository := repository.NewStudentRepository(db)
-	studentIDs := studentRepository.GetStudentIDs()
-	courseRepository := repository.NewCourseRepository(db)
-	courseIDs := courseRepository.GetCourseIDs()
+	studentIDs := s.studentRepo.GetStudentIDs()
+	courseIDs := s.courseRepo.GetCourseIDs()
 	// increasing the ratio to approved vs false to 4:1
 	approvedOption := []bool{true, true, true, false}
-	enrollmentRepository := repository.NewEnrollmentRepository(db)
 
 	var enrollmentModelLinks []model.Enrollment
 	for _, studentID := range studentIDs {
 		coursesEnroll := rand.Intn(5) + minCourseEnroll
 		pickedCourseIDs := pickRandomIDs(courseIDs, coursesEnroll)
 		for _, cIDs := range pickedCourseIDs {
-			if !enrollmentRepository.IsStudentEnrolledInCourse(studentID, cIDs) {
+			if !s.enrollmentRepo.IsStudentEnrolledInCourse(studentID, cIDs) {
 				modelLink := model.Enrollment{
 					StudentID: &studentID,
 					CourseID:  &cIDs,
@@ -34,7 +44,7 @@ func EnrollmentSeeder(db *sql.DB) {
 			}
 		}
 	}
-	enrollmentRepository.InsertMultipleEnrollments(enrollmentModelLinks)
+	s.enrollmentRepo.InsertMultipleEnrollments(enrollmentModelLinks)
 	fmt.Println("Finish seeding Enrollment")
 }
 

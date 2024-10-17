@@ -1,15 +1,12 @@
 package main
 
 import (
-	"be-exerise-go-mod/repository"
 	"be-exerise-go-mod/seeder"
 	"be-exerise-go-mod/util"
 	"database/sql"
 	"fmt"
-	"math/rand"
 	"os"
 
-	"github.com/brianvoe/gofakeit/v7"
 	_ "github.com/lib/pq"
 )
 
@@ -40,31 +37,16 @@ func main() {
 	util.PanicOnError(err)
 	defer db.Close()
 
+	seeder := seeder.NewSeeder(db)
+
 	switch command {
 	case "up":
 		fmt.Println("----- Starting running seeders -----")
-		departmentRepo := repository.NewDepartmentRepository(db)
-		teacherRepo := repository.NewTeacherRepository(db)
-		studentRepo := repository.NewStudentRepository(db)
-
-		teacherSeeder := seeder.NewTeacherSeeder(teacherRepo, departmentRepo, gofakeit.New(0), rand.New(rand.NewSource(0)))
-		departmentSeeder := seeder.NewDepartmentSeeder(departmentRepo)
-		studentSeeder := seeder.NewStudentSeeder(studentRepo, departmentRepo, gofakeit.New(0), rand.New(rand.NewSource(0)))
-
-		departmentSeeder.Seed()
-		teacherSeeder.Seed(teacherSize)
-		seeder.CourseSeeder(db)
-		seeder.GradeSettingSeeder(db)
-		studentSeeder.Seed(studentSize)
-		seeder.EnrollmentSeeder(db)
-		seeder.AssignmentSeeder(db)
-		seeder.ExamSeeder(db)
-		seeder.SubmissionSeeder(db)
-		seeder.ScoreSeeder(db)
+		seeder.SeedAll(teacherSize, studentSize)
 		fmt.Println("----- Finished running seeder -----")
 	case "down":
 		fmt.Println("----- Starting running deseeder -----")
-		seeder.DeseedAll(db)
+		seeder.DeseedAll()
 		fmt.Println("----- Complete running deseeder -----")
 	default:
 		fmt.Println("Wrong command. Please use 'up' or 'down'")

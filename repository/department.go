@@ -13,23 +13,17 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type DepartmentRepository interface {
-	GetDepartmentIDs() []int32
-	InsertMultipleDepartments([]model.Department)
-	ClearAllDepartments()
-}
-
-type departmentRepository struct {
+type DepartmentRepository struct {
 	db *sql.DB
 }
 
-func NewDepartmentRepository(db *sql.DB) *departmentRepository {
-	return &departmentRepository{
+func NewDepartmentRepository(db *sql.DB) *DepartmentRepository {
+	return &DepartmentRepository{
 		db: db,
 	}
 }
 
-func (r *departmentRepository) GetAllDepartments() []model.Department {
+func (r *DepartmentRepository) GetAllDepartments() []model.Department {
 	stmt := SELECT(
 		Department.AllColumns,
 	).FROM(
@@ -43,7 +37,7 @@ func (r *departmentRepository) GetAllDepartments() []model.Department {
 	return dest
 }
 
-func (r *departmentRepository) GetDepartmentIDs() []int32 {
+func (r *DepartmentRepository) GetDepartmentIDs() []int32 {
 	var department = r.GetAllDepartments()
 
 	ids := make([]int32, len(department))
@@ -54,13 +48,13 @@ func (r *departmentRepository) GetDepartmentIDs() []int32 {
 	return ids
 }
 
-func (r *departmentRepository) InsertMultipleDepartments(departments []model.Department) {
+func (r *DepartmentRepository) InsertMultipleDepartments(departments []model.Department) {
 	insertStmt := Department.INSERT(Department.Name).MODELS(departments)
 	_, err := insertStmt.Exec(r.db)
 	util.PanicOnError(err)
 }
 
-func (r *departmentRepository) ClearAllDepartments() {
+func (r *DepartmentRepository) ClearAllDepartments() {
 	_, err := r.db.Exec("TRUNCATE TABLE department RESTART IDENTITY CASCADE")
 	util.PanicOnError(err)
 	fmt.Println("Complete truncating department table and reset auto increment")

@@ -11,22 +11,17 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type GradeSettingRepository interface {
-	InsertMultipleGradeSettings(gradeSettings []model.GradeSetting)
-	ClearAllGradeSettings()
-}
-
-type gradeSettingRepository struct {
+type GradeSettingRepository struct {
 	db *sql.DB
 }
 
-func NewGradeSettingRepository(db *sql.DB) *gradeSettingRepository {
-	return &gradeSettingRepository{
+func NewGradeSettingRepository(db *sql.DB) *GradeSettingRepository {
+	return &GradeSettingRepository{
 		db: db,
 	}
 }
 
-func (r *gradeSettingRepository) InsertMultipleGradeSettings(gradeSettings []model.GradeSetting) {
+func (r *GradeSettingRepository) InsertMultipleGradeSettings(gradeSettings []model.GradeSetting) {
 	insertStmt := GradeSetting.INSERT(
 		GradeSetting.AssignmentPercent,
 		GradeSetting.ExamPercent,
@@ -37,7 +32,7 @@ func (r *gradeSettingRepository) InsertMultipleGradeSettings(gradeSettings []mod
 	util.PanicOnError(err)
 }
 
-func (r *gradeSettingRepository) ClearAllGradeSettings() {
+func (r *GradeSettingRepository) ClearAllGradeSettings() {
 	_, err := r.db.Exec("TRUNCATE TABLE grade_setting RESTART IDENTITY CASCADE")
 	util.PanicOnError(err)
 	fmt.Println("Complete truncating grade_setting table and reset auto increment")

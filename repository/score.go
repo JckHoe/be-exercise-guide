@@ -13,23 +13,17 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type ScoreRepository interface {
-	GetScoreIDs() []int32
-	InsertMultipleScores(scores []model.Score)
-	ClearAllScores()
-}
-
-type scoreRepository struct {
+type ScoreRepository struct {
 	db *sql.DB
 }
 
-func NewScoreRepository(db *sql.DB) *scoreRepository {
-	return &scoreRepository{
+func NewScoreRepository(db *sql.DB) *ScoreRepository {
+	return &ScoreRepository{
 		db: db,
 	}
 }
 
-func (r *scoreRepository) GetScoreIDs() []int32 {
+func (r *ScoreRepository) GetScoreIDs() []int32 {
 	stmt := SELECT(
 		Score.ID,
 	).FROM(
@@ -49,13 +43,13 @@ func (r *scoreRepository) GetScoreIDs() []int32 {
 	return ids
 }
 
-func (r *scoreRepository) InsertMultipleScores(scores []model.Score) {
+func (r *ScoreRepository) InsertMultipleScores(scores []model.Score) {
 	insertStmt := Score.INSERT(Score.Value, Score.TeacherID, Score.SubmissionID).MODELS(scores)
 	_, err := insertStmt.Exec(r.db)
 	util.PanicOnError(err)
 }
 
-func (r *scoreRepository) ClearAllScores() {
+func (r *ScoreRepository) ClearAllScores() {
 	_, err := r.db.Exec("TRUNCATE TABLE score RESTART IDENTITY CASCADE")
 	util.PanicOnError(err)
 	fmt.Println("Complete truncating score table and reset auto increment")

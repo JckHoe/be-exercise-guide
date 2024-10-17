@@ -14,13 +14,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type SubmissionRepository interface {
-	GetSubmissionIDsAndDepartmentIDs() []SubmissionRes
-	InsertMultipleSubmissions(submissions []model.Submission)
-	ClearAllSubmissions()
-}
-
-type submissionRepository struct {
+type SubmissionRepository struct {
 	db *sql.DB
 }
 
@@ -32,13 +26,13 @@ type SubmissionRes struct {
 	IsAssignment      bool
 }
 
-func NewSubmissionRepository(db *sql.DB) *submissionRepository {
-	return &submissionRepository{
+func NewSubmissionRepository(db *sql.DB) *SubmissionRepository {
+	return &SubmissionRepository{
 		db: db,
 	}
 }
 
-func (r *submissionRepository) GetSubmissionIDsAndDepartmentIDs() []SubmissionRes {
+func (r *SubmissionRepository) GetSubmissionIDsAndDepartmentIDs() []SubmissionRes {
 	var res []SubmissionRes
 	var dest []struct {
 		model.Submission
@@ -101,7 +95,7 @@ func (r *submissionRepository) GetSubmissionIDsAndDepartmentIDs() []SubmissionRe
 	return res
 }
 
-func (r *submissionRepository) InsertMultipleSubmissions(submissions []model.Submission) {
+func (r *SubmissionRepository) InsertMultipleSubmissions(submissions []model.Submission) {
 	insertStmt := Submission.INSERT(
 		Submission.StudentID,
 		Submission.AssignmentID,
@@ -112,7 +106,7 @@ func (r *submissionRepository) InsertMultipleSubmissions(submissions []model.Sub
 	util.PanicOnError(err)
 }
 
-func (r *submissionRepository) ClearAllSubmissions() {
+func (r *SubmissionRepository) ClearAllSubmissions() {
 	_, err := r.db.Exec("TRUNCATE TABLE submission RESTART IDENTITY CASCADE")
 	util.PanicOnError(err)
 	fmt.Println("Complete truncating submission table and reset auto increment")

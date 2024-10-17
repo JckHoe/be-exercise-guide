@@ -1,7 +1,6 @@
 package seeder
 
 import (
-	"database/sql"
 	"fmt"
 	"math/rand"
 
@@ -9,10 +8,20 @@ import (
 	"be-exerise-go-mod/repository"
 )
 
-func GradeSettingSeeder(db *sql.DB) {
-	courseRepository := repository.NewCourseRepository(db)
-	gradeSettingRepository := repository.NewGradeSettingRepository(db)
-	courseIDs := courseRepository.GetCourseIDs()
+type GradeSetting struct {
+	courseRepo       *repository.CourseRepository
+	gradeSettingRepo *repository.GradeSettingRepository
+}
+
+func NewGradeSetting(courseRepo *repository.CourseRepository, gradeSettingRepo *repository.GradeSettingRepository) *GradeSetting {
+	return &GradeSetting{
+		courseRepo:       courseRepo,
+		gradeSettingRepo: gradeSettingRepo,
+	}
+}
+
+func (s *GradeSetting) Seed() {
+	courseIDs := s.courseRepo.GetCourseIDs()
 	var gradeSettingModelLinks []model.GradeSetting
 
 	assignmentPercentRandomChoice := []int32{20, 25, 30, 35, 40, 45}
@@ -28,6 +37,6 @@ func GradeSettingSeeder(db *sql.DB) {
 		}
 		gradeSettingModelLinks = append(gradeSettingModelLinks, modelLink)
 	}
-	gradeSettingRepository.InsertMultipleGradeSettings(gradeSettingModelLinks)
+	s.gradeSettingRepo.InsertMultipleGradeSettings(gradeSettingModelLinks)
 	fmt.Println("Finish seeding GradeSetting")
 }

@@ -7,17 +7,17 @@ import (
 	"be-exerise-go-mod/repository"
 )
 
-type departmentSeeder struct {
-	departmentRepo repository.DepartmentRepository
+type Department struct {
+	departmentRepo *repository.DepartmentRepository
 }
 
-func NewDepartmentSeeder(departmentRepo repository.DepartmentRepository) *departmentSeeder {
-	return &departmentSeeder{
+func NewDepartment(departmentRepo *repository.DepartmentRepository) *Department {
+	return &Department{
 		departmentRepo: departmentRepo,
 	}
 }
 
-func (s *departmentSeeder) Seed() {
+func (s *Department) Seed() {
 	departmentNames := []string{
 		"Computer Science",
 		"Biology",

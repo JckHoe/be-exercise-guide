@@ -13,23 +13,17 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type StudentRepository interface {
-	GetStudentIDs() []int32
-	InsertMultipleStudents(students []model.Student)
-	ClearAllStudents()
-}
-
-type studentRepository struct {
+type StudentRepository struct {
 	db *sql.DB
 }
 
-func NewStudentRepository(db *sql.DB) *studentRepository {
-	return &studentRepository{
+func NewStudentRepository(db *sql.DB) *StudentRepository {
+	return &StudentRepository{
 		db: db,
 	}
 }
 
-func (r *studentRepository) GetStudentIDs() []int32 {
+func (r *StudentRepository) GetStudentIDs() []int32 {
 	stmt := SELECT(
 		Student.ID,
 	).FROM(
@@ -49,7 +43,7 @@ func (r *studentRepository) GetStudentIDs() []int32 {
 	return ids
 }
 
-func (r *studentRepository) InsertMultipleStudents(students []model.Student) {
+func (r *StudentRepository) InsertMultipleStudents(students []model.Student) {
 	insertStmt := Student.INSERT(
 		Student.FirstName,
 		Student.LastName,
@@ -61,7 +55,7 @@ func (r *studentRepository) InsertMultipleStudents(students []model.Student) {
 	util.PanicOnError(err)
 }
 
-func (r *studentRepository) ClearAllStudents() {
+func (r *StudentRepository) ClearAllStudents() {
 	_, err := r.db.Exec("TRUNCATE TABLE student RESTART IDENTITY CASCADE")
 	util.PanicOnError(err)
 	fmt.Println("Complete truncating student table and reset auto increment")
